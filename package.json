@@ -17,5 +17,8 @@
   "devDependencies": {
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
   }
 }
