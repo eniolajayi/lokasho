@@ -29,6 +29,11 @@ functionality into the `plugins` folder, and share it via
 If you're a bit confused about using `async/await` to write routes, you would
 better take a look at [Promise resolution](https://fastify.dev/docs/latest/Reference/Routes/#promise-resolution) for more details.
 
-# run migration
+### run migration
+
 `pnpm run db:generate`
 `pnpm run db:migrate`
+
+### routing
+
+filesystem routing
