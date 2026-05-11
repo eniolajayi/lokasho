@@ -34,12 +34,12 @@ function scoreHumidity(humidity: number): number {
 }
 
 // weather uvIndex
-function scoreUvIndex(uv: number): number {
-  if (uv >= 6) return 100;
-  if (uv >= 3) return 80;
-  if (uv >= 1) return 50;
-  return 20;
-}
+// function scoreUvIndex(uv: number): number {
+//   if (uv >= 6) return 100;
+//   if (uv >= 3) return 80;
+//   if (uv >= 1) return 50;
+//   return 20;
+// }
 
 function scoreWindSpeed(wind: number): number {
   // km/h light breeze is ideal, too still or too strong is worse
