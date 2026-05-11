@@ -1,7 +1,8 @@
 import { FastifyPluginAsync } from "fastify";
 import { Type } from "typebox";
-import { getWeather } from "../../../services/weatherService";
-import { calculateScore, findBestWindow } from "../../../services/scoring";
+import { getWeather } from "../../../services/weatherForecast";
+import { calculateScore, findBestWindow, getAssessment } from "../../../services/scoring";
+import { getSunDryConditionsSnapshot } from "../../../services/influence";
 
 const QuerySchema = Type.Object({
   lat: Type.Number({ minimum: -90, maximum: 90 }),
@@ -78,6 +79,24 @@ const weather: FastifyPluginAsync = async (fastify) => {
         hourly,
       };
     },
+  );
+  fastify.get(
+    "/check",
+    {
+      schema: {
+        tags: ["weather"],
+        querystring: QuerySchema,
+        response: {
+          200:
+        }
+      }
+    },
+    async (request) => {
+      const { lat, lon } = request.query as { lat: number; lon: number };
+      const snapshot = await getSunDryConditionsSnapshot(lat, lon);
+      const assessment = getAssessment(snapshot);
+      return assessment;
+    }
   );
 };
 
