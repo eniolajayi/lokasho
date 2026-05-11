@@ -116,7 +116,7 @@ async function fetchCustomWeatherForecast(
     humidity: current.variables(1)!.value(), // relative_humidity_2m
     windSpeed: current.variables(2)!.value(), // wind_speed_10m
     rainProbability: current.variables(3)!.value(), // precipitation
-    uvIndex: daily.variables(0)!.value(), // uv_index_max
+    uvIndex: daily.variables(0)!.valuesArray()![0], // uv_index_max
     hourly: hourlyTimes.map((time, i) => ({
       time,
       temperature: hourly.variables(0)!.valuesArray()![i], // temperature_2m
