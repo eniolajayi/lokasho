@@ -2,7 +2,8 @@ import { join } from "node:path";
 import AutoLoad, { AutoloadPluginOptions } from "@fastify/autoload";
 import { FastifyPluginAsync, FastifyServerOptions } from "fastify";
 
-export interface AppOptions extends FastifyServerOptions, Partial<AutoloadPluginOptions> {}
+export interface AppOptions
+  extends FastifyServerOptions, Partial<AutoloadPluginOptions> {}
 // Pass --options via CLI arguments in command to enable these options.
 const options: AppOptions = {
   logger: {
@@ -21,7 +22,10 @@ const options: AppOptions = {
   },
 };
 
-const app: FastifyPluginAsync<AppOptions> = async (fastify, opts): Promise<void> => {
+const app: FastifyPluginAsync<AppOptions> = async (
+  fastify,
+  opts,
+): Promise<void> => {
   // Place here your custom code!
 
   // Do not touch the following lines
@@ -40,7 +44,7 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify, opts): Promise<void>
   // eslint-disable-next-line no-void
   void fastify.register(AutoLoad, {
     dir: join(__dirname, "routes"),
-    options: opts,
+    options: { ...opts },
   });
 };
 
