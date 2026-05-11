@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from "fastify";
 import { Type } from "typebox";
 import { getWeather } from "../../../services/weatherForecast";
-import { calculateScore, findBestWindow, getAssessment } from "../../../services/scoring";
+import { getAssessment } from "../../../services/scoring";
 import { getSunDryConditionsSnapshot } from "../../../services/influence";
 
 const QuerySchema = Type.Object({
@@ -19,25 +19,16 @@ const weather: FastifyPluginAsync = async (fastify) => {
         response: {
           200: Type.Object({
             current: Type.Object({
-              score: Type.Number(),
               grade: Type.String(),
               temperature: Type.Number(),
               humidity: Type.Number(),
-              // uxIndex: Type.Number(),
+              uxIndex: Type.Number(),
               windSpeed: Type.Number(),
               rainProbability: Type.Number(),
             }),
-            bestWindow: Type.Union([
-              Type.Object({
-                start: Type.String(),
-                end: Type.String(),
-              }),
-              Type.Null(),
-            ]),
             hourly: Type.Array(
               Type.Object({
                 time: Type.String(),
-                score: Type.Number(),
                 temperature: Type.Number(),
                 humidity: Type.Number(),
                 rainProbability: Type.Number(),
@@ -49,34 +40,17 @@ const weather: FastifyPluginAsync = async (fastify) => {
     },
     async (request) => {
       const { lat, lon } = request.query as { lat: number; lon: number };
-
       const weather = await getWeather(lat, lon);
-      const { score, grade } = calculateScore(weather);
-      const bestWindow = findBestWindow(weather.hourly);
-
-      const hourly = weather.hourly.map((h) => {
-        const { score: hourScore } = calculateScore(h);
-        return {
-          time: h.time,
-          score: hourScore,
-          temperature: h.temperature,
-          humidity: h.humidity,
-          rainProbability: h.rainProbability,
-        };
-      });
 
       return {
         current: {
-          score,
-          grade,
           temperature: weather.temperature,
           humidity: weather.humidity,
-          // uvIndex: weather.uvIndex,
+          uvIndex: weather.uvIndex,
           windSpeed: weather.windSpeed,
           rainProbability: weather.rainProbability,
         },
-        bestWindow,
-        hourly,
+        hourly: weather.hourly,
       };
     },
   );
@@ -87,16 +61,32 @@ const weather: FastifyPluginAsync = async (fastify) => {
         tags: ["weather"],
         querystring: QuerySchema,
         response: {
-          200:
-        }
-      }
+          200: Type.Object({
+            score: Type.Number(),
+            grade: Type.Number(),
+            parameters: Type.Object({
+              grade: Type.String(),
+              temperature: Type.Number(),
+              humidity: Type.Number(),
+              uxIndex: Type.Number(),
+              windSpeed: Type.Number(),
+              rainProbability: Type.Number(),
+            }),
+            best_window: Type.Object({
+              start: Type.String(),
+              end: Type.String(),
+              closed: Type.Boolean(),
+            }),
+          }),
+        },
+      },
     },
     async (request) => {
       const { lat, lon } = request.query as { lat: number; lon: number };
       const snapshot = await getSunDryConditionsSnapshot(lat, lon);
       const assessment = getAssessment(snapshot);
       return assessment;
-    }
+    },
   );
 };
 
