@@ -1,21 +1,28 @@
-import { WeatherData, HourlyForecast } from "./weatherService";
+import { SunDryConditions, HourlySunDryConditions } from "./influence";
 
-export interface ScoreBreakdown {
-  temperature: number;
-  humidity: number;
-  // uvIndex: number;
-  windSpeed: number;
-  rainProbability: number;
-}
+// The main meat of the app
+// Lots of work to be done here, need to do more research
+// can we use Evotranspiration from open meteo api?
 
-export interface DryingScore {
-  score: number;
-  grade: "excellent" | "good" | "fair" | "poor";
-  breakdown: ScoreBreakdown;
-  bestWindow: { start: string; end: string } | null;
-}
+export type DryingScore = number;
 
-// What's the best score for drying stuff. need to add rationale for this values
+export type DryingScoreGrade = "excellent" | "good" | "fair" | "poor";
+
+export type DryingScoreAssessment = {
+  score: DryingScore;
+  grade: DryingScoreGrade;
+  parameters: SunDryConditions;
+};
+
+export type DryingTimeWindow = {
+  start: string;
+  end: string;
+};
+
+export type SunDryWeatherAssessment = DryingScoreAssessment & {
+  best_window: DryingTimeWindow;
+};
+
 function scoreTemperature(temp: number): number {
   if (temp >= 25) return 100;
   if (temp >= 18) return 80;
@@ -34,12 +41,12 @@ function scoreHumidity(humidity: number): number {
 }
 
 // weather uvIndex
-// function scoreUvIndex(uv: number): number {
-//   if (uv >= 6) return 100;
-//   if (uv >= 3) return 80;
-//   if (uv >= 1) return 50;
-//   return 20;
-// }
+function scoreUvIndex(uv: number): number {
+  if (uv >= 6) return 100;
+  if (uv >= 3) return 80;
+  if (uv >= 1) return 50;
+  return 20;
+}
 
 function scoreWindSpeed(wind: number): number {
   // km/h light breeze is ideal, too still or too strong is worse
@@ -57,25 +64,22 @@ function scoreRainProbability(rainProb: number): number {
   return 0;
 }
 
-function gradeFromScore(score: number): DryingScore["grade"] {
+function getScoreGrade(score: number): DryingScoreGrade {
   if (score >= 80) return "excellent";
   if (score >= 60) return "good";
   if (score >= 40) return "fair";
   return "poor";
 }
 
-// need to use UV index
 export function calculateScore(
-  data: Pick<
-    WeatherData,
-    "temperature" | "humidity" | "windSpeed" | "rainProbability"
-  >,
-): DryingScore {
-  const breakdown = {
-    temperature: scoreTemperature(data.temperature),
-    humidity: scoreHumidity(data.humidity),
-    windSpeed: scoreWindSpeed(data.windSpeed),
-    rainProbability: scoreRainProbability(data.rainProbability),
+  conditions: SunDryConditions,
+): DryingScoreAssessment {
+  const parameters = {
+    temperature: scoreTemperature(conditions.temperature),
+    humidity: scoreHumidity(conditions.humidity),
+    windSpeed: scoreWindSpeed(conditions.windSpeed),
+    uvIndex: scoreUvIndex(conditions.uvIndex),
+    rainProbability: scoreRainProbability(conditions.rainProbability),
   };
 
   // each factor scores 0–100 independently,
@@ -87,24 +91,24 @@ export function calculateScore(
   // Wind gets 10%
   // will adjust overtime with feedback
   const score = Math.round(
-    breakdown.temperature * 0.2 +
-      breakdown.humidity * 0.25 +
-      breakdown.windSpeed * 0.1 +
-      breakdown.rainProbability * 0.25,
+    parameters.temperature * 0.2 +
+      parameters.humidity * 0.25 +
+      parameters.uvIndex * 0.2 +
+      parameters.windSpeed * 0.1 +
+      parameters.rainProbability * 0.25,
   );
 
   return {
     score,
-    grade: gradeFromScore(score),
-    breakdown,
-    bestWindow: null, // to fix
+    grade: getScoreGrade(score),
+    parameters,
   };
 }
 
 // break down function
 export function findBestWindow(
-  hourly: HourlyForecast[],
-): { start: string; end: string } | null {
+  hourly: HourlySunDryConditions[],
+): DryingTimeWindow | null {
   // find the longest consecutive run of hours with score >= 60
 
   // algorithm needs more comment
@@ -131,9 +135,8 @@ export function findBestWindow(
   });
 
   if (bestStart === -1 || bestLength < 2) return null;
-
   return {
-    start: hourly[bestStart].time.toDateString(),
-    end: hourly[bestStart + bestLength - 1].time.toDateString(),
+    start: hourly[bestStart].time.toString(),
+    end: hourly[bestStart + bestLength - 1].time.toString(),
   };
 }
