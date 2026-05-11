@@ -40,25 +40,6 @@ const weather: FastifyPluginAsync = async (fastify) => {
       schema: {
         tags: ["weather"],
         querystring: QuerySchema,
-        response: {
-          200: Type.Object({
-            score: Type.Number(),
-            grade: Type.Number(),
-            parameters: Type.Object({
-              grade: Type.String(),
-              temperature: Type.Number(),
-              humidity: Type.Number(),
-              uxIndex: Type.Number(),
-              windSpeed: Type.Number(),
-              rainProbability: Type.Number(),
-            }),
-            best_window: Type.Object({
-              start: Type.String(),
-              end: Type.String(),
-              closed: Type.Boolean(),
-            }),
-          }),
-        },
       },
     },
     async (request) => {
