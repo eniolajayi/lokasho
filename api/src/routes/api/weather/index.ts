@@ -19,7 +19,6 @@ const weather: FastifyPluginAsync = async (fastify) => {
         response: {
           200: Type.Object({
             current: Type.Object({
-              grade: Type.String(),
               temperature: Type.Number(),
               humidity: Type.Number(),
               uxIndex: Type.Number(),
