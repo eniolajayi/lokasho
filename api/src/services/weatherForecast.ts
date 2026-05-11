@@ -84,7 +84,7 @@ async function fetchCustomWeatherForecast(
   lat: number,
   lon: number,
 ): Promise<CustomWeatherForecast> {
-  const raw = await fetchFromExternalAPI(lat, lon);
+  const raw = await fetchExternalAPIWeather(lat, lon);
   const current = raw.current();
   const hourly = raw.hourly();
   const daily = raw.daily();
@@ -128,7 +128,7 @@ async function fetchCustomWeatherForecast(
   };
 }
 
-async function fetchFromExternalAPI(lat: number, lon: number) {
+async function fetchExternalAPIWeather(lat: number, lon: number) {
   // Using open-meteo https://open-meteo.com/en/docs
   const OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
   const params = new URLSearchParams({
