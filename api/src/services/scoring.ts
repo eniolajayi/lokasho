@@ -78,7 +78,14 @@ export function calculateScore(
     rainProbability: scoreRainProbability(data.rainProbability),
   };
 
-  // weighted average, rain and humidity matter most
+  // each factor scores 0–100 independently,
+  // then they're combined using a weighted average.
+  // rain probability and humidity carry the most weight (25% each)
+  // because they most directly prevent drying
+  // you can have a hot sunny day but if rain is imminent or the air is saturated, clothes won't dry.
+  // Temperature and UV index share 20% each as they drive the actual evaporation.
+  // Wind gets 10%
+  // will adjust overtime with feedback
   const score = Math.round(
     breakdown.temperature * 0.2 +
       breakdown.humidity * 0.25 +
