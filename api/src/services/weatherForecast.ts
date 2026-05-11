@@ -3,23 +3,23 @@ import { weatherCache } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { fetchWeatherApi } from "openmeteo";
 
-export interface CustomWeatherForecast {
+export type CustomWeatherForecast = {
   temperature: number;
   humidity: number;
   windSpeed: number;
   uvIndex: number;
   rainProbability: number;
   hourly: HourlyForecast[];
-}
+};
 
-export interface HourlyForecast {
+export type HourlyForecast = {
   time: Date;
   temperature: number;
   humidity: number;
   windSpeed: number;
   uvIndex: number;
   rainProbability: number;
-}
+};
 
 /// get custom weather forecast from cache or re-fetch
 export async function getWeather(

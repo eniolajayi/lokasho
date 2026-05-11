@@ -1,10 +1,10 @@
-export interface SunDryConditions {
+export type SunDryConditions = {
   temperature: number;
   humidity: number;
   windSpeed: number;
   uvIndex: number;
   rainProbability: number;
-}
+};
 
 export type CurrentSunDryConditions = SunDryConditions;
 export type HourlySunDryConditions = SunDryConditions & { time: Date };
