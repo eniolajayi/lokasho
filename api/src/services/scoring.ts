@@ -1,4 +1,8 @@
-import { SunDryConditions, HourlySunDryConditions } from "./influence";
+import {
+  SunDryConditions,
+  HourlySunDryConditions,
+  SunDryConditionsSnapshot,
+} from "./influence";
 
 // The main meat of the app
 // Lots of work to be done here, need to do more research
@@ -8,15 +12,18 @@ export type DryingScore = number;
 
 export type DryingScoreGrade = "excellent" | "good" | "fair" | "poor";
 
+export type DryingScoreParameters = SunDryConditions;
+
 export type DryingScoreAssessment = {
   score: DryingScore;
   grade: DryingScoreGrade;
-  parameters: SunDryConditions;
+  parameters: DryingScoreParameters;
 };
 
 export type DryingTimeWindow = {
   start: string;
   end: string;
+  closed: boolean;
 };
 
 export type SunDryWeatherAssessment = DryingScoreAssessment & {
@@ -71,17 +78,23 @@ function getScoreGrade(score: number): DryingScoreGrade {
   return "poor";
 }
 
-export function calculateScore(
-  conditions: SunDryConditions,
-): DryingScoreAssessment {
+export function calculateParameterValues(
+  values: SunDryConditions,
+): DryingScoreParameters {
   const parameters = {
-    temperature: scoreTemperature(conditions.temperature),
-    humidity: scoreHumidity(conditions.humidity),
-    windSpeed: scoreWindSpeed(conditions.windSpeed),
-    uvIndex: scoreUvIndex(conditions.uvIndex),
-    rainProbability: scoreRainProbability(conditions.rainProbability),
+    temperature: scoreTemperature(values.temperature),
+    humidity: scoreHumidity(values.humidity),
+    windSpeed: scoreWindSpeed(values.windSpeed),
+    uvIndex: scoreUvIndex(values.uvIndex),
+    rainProbability: scoreRainProbability(values.rainProbability),
   };
 
+  return parameters;
+}
+
+export function calculateScore(
+  parameters: DryingScoreParameters,
+): DryingScoreAssessment {
   // each factor scores 0–100 independently,
   // then they're combined using a weighted average.
   // rain probability and humidity carry the most weight (25% each)
@@ -108,7 +121,7 @@ export function calculateScore(
 // break down function
 export function findBestWindow(
   hourly: HourlySunDryConditions[],
-): DryingTimeWindow | null {
+): DryingTimeWindow {
   // find the longest consecutive run of hours with score >= 60
 
   // algorithm needs more comment
@@ -134,9 +147,27 @@ export function findBestWindow(
     }
   });
 
-  if (bestStart === -1 || bestLength < 2) return null;
+  // not enough data to find a window, return empty window
+  if (bestStart === -1 || bestLength < 2)
+    return {
+      start: "",
+      end: "",
+      closed: true,
+    };
+
   return {
     start: hourly[bestStart].time.toString(),
     end: hourly[bestStart + bestLength - 1].time.toString(),
+    closed: false,
+  };
+}
+
+export function getAssessment(
+  values: SunDryConditionsSnapshot,
+): SunDryWeatherAssessment {
+  const scoreAssessment = calculateScore(values.current);
+  return {
+    ...scoreAssessment,
+    best_window: findBestWindow(values.hourly),
   };
 }
