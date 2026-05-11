@@ -13,6 +13,7 @@ const weather: FastifyPluginAsync = async (fastify) => {
     "/",
     {
       schema: {
+        tags: ["weather"],
         querystring: QuerySchema,
         response: {
           200: Type.Object({
