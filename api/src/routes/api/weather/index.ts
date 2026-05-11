@@ -16,25 +16,6 @@ const weather: FastifyPluginAsync = async (fastify) => {
       schema: {
         tags: ["weather"],
         querystring: QuerySchema,
-        response: {
-          200: Type.Object({
-            current: Type.Object({
-              temperature: Type.Number(),
-              humidity: Type.Number(),
-              uxIndex: Type.Number(),
-              windSpeed: Type.Number(),
-              rainProbability: Type.Number(),
-            }),
-            hourly: Type.Array(
-              Type.Object({
-                time: Type.String(),
-                temperature: Type.Number(),
-                humidity: Type.Number(),
-                rainProbability: Type.Number(),
-              }),
-            ),
-          }),
-        },
       },
     },
     async (request) => {
